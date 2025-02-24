@@ -17,11 +17,21 @@ class _EntradaDadosInputsState extends State<EntradaDadosInputs> {
 
   void _salvarTarefa() {
     final novaTarefa = _controller.text.trim();
-    if (novaTarefa.isNotEmpty) {
-      Navigator.pop(context, novaTarefa);
+
+    if (novaTarefa.isNotEmpty &&
+        _prioridadeSelecionada != null &&
+        _selectedCategory != null) {
+      Navigator.pop(context, {
+        'titulo': novaTarefa,
+        'prioridade': _prioridadeSelecionada,
+        'categoria': _selectedCategory,
+        'notificacao': _switchValue,
+        'importante': _checkboxValue,
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, insira uma tarefa.')),
+        const SnackBar(
+            content: Text('Preencha todos os campos antes de salvar.')),
       );
     }
   }
@@ -47,7 +57,7 @@ class _EntradaDadosInputsState extends State<EntradaDadosInputs> {
               ),
               const SizedBox(height: 20),
 
-              // Checkbox
+              // botao checkbox
               Row(
                 children: [
                   Checkbox(
@@ -62,7 +72,7 @@ class _EntradaDadosInputsState extends State<EntradaDadosInputs> {
                 ],
               ),
 
-              // Switch
+              // botao switch
               Row(
                 children: [
                   const Text('Ativar notificação: '),
@@ -77,8 +87,7 @@ class _EntradaDadosInputsState extends State<EntradaDadosInputs> {
                 ],
               ),
 
-              // Radio Button
-
+              //botao radio button
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -122,7 +131,7 @@ class _EntradaDadosInputsState extends State<EntradaDadosInputs> {
 
               const SizedBox(height: 20),
 
-              // DropdownButton
+              // botao dropdowm
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -146,6 +155,7 @@ class _EntradaDadosInputsState extends State<EntradaDadosInputs> {
                 ],
               ),
 
+              // salvar tarefaa
               const SizedBox(height: 20),
               EntradaDadosButtons(
                 onSave: (String tarefa) {

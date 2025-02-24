@@ -12,8 +12,7 @@ class EntradaDadosButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        const novaTarefa =
-            "Nova Tarefa Adicionada"; // Placeholder para lógica futura
+        const novaTarefa = "Nova Tarefa Adicionada";
         if (novaTarefa.isNotEmpty) {
           onSave(novaTarefa);
           ScaffoldMessenger.of(context).showSnackBar(

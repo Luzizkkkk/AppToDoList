@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:io';
 
 class SettingsTabView extends StatefulWidget {
   const SettingsTabView({super.key});
@@ -10,19 +13,54 @@ class SettingsTabView extends StatefulWidget {
 class _SettingsTabViewState extends State<SettingsTabView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  double _sliderValue = 50; // Valor inicial do Slider
+  double _sliderValue = 50;
+  String? _imageUrl;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-        length: 2, vsync: this); // Duas abas: Configurações e Sobre
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      File file = File(pickedFile.path);
+      final fileName = 'imagem_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final storagePath = 'uploads/$fileName';
+
+      //upload no supabase da imagem
+      final uploadResponse = await Supabase.instance.client.storage
+          .from('uploads')
+          .upload(storagePath, file,
+              fileOptions: const FileOptions(upsert: true));
+
+      if (uploadResponse.error == null) {
+        final publicUrl = Supabase.instance.client.storage
+            .from('uploads')
+            .getPublicUrl(storagePath);
+
+        setState(() {
+          _imageUrl = publicUrl;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Upload concluído!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao enviar imagem')),
+        );
+      }
+    }
   }
 
   @override
@@ -41,7 +79,7 @@ class _SettingsTabViewState extends State<SettingsTabView>
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Primeira aba: Configurações
+          //aba das configuracoes
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -53,32 +91,51 @@ class _SettingsTabViewState extends State<SettingsTabView>
                 ),
                 const SizedBox(height: 20),
 
-                // Slider de Volume
+                //volumeeee
                 Slider(
-                  value: _sliderValue, // Usa a variável de estado
+                  value: _sliderValue,
                   min: 0,
                   max: 100,
                   divisions: 10,
-                  label:
-                      '${_sliderValue.round()}%', // Mostra o valor arredondado
+                  label: '${_sliderValue.round()}%',
                   onChanged: (value) {
                     setState(() {
-                      _sliderValue = value; // Atualiza o valor do Slider
+                      _sliderValue = value;
                     });
                   },
                 ),
                 const SizedBox(height: 20),
 
-                // Exibe o volume atual
                 Text(
-                  'Volume: ${_sliderValue.round()}%', // Exibe o valor atualizado
+                  'Volume: ${_sliderValue.round()}%',
                   style: const TextStyle(fontSize: 18),
+                ),
+
+                const SizedBox(height: 30),
+
+                //imagem do perfil
+                _imageUrl != null
+                    ? CircleAvatar(
+                        radius: 50,
+                        backgroundImage: NetworkImage(_imageUrl!),
+                      )
+                    : const CircleAvatar(
+                        radius: 50,
+                        child: Icon(Icons.person, size: 50),
+                      ),
+
+                const SizedBox(height: 10),
+
+                //botao pra colocar imagem
+                ElevatedButton(
+                  onPressed: _pickAndUploadImage,
+                  child: const Text('Alterar Foto de Perfil'),
                 ),
               ],
             ),
           ),
 
-          // Segunda aba: Sobre o App
+          //aba SOBRE
           const Center(
             child: Padding(
               padding: EdgeInsets.all(16.0),
@@ -93,4 +150,8 @@ class _SettingsTabViewState extends State<SettingsTabView>
       ),
     );
   }
+}
+
+extension on String {
+  get error => null;
 }

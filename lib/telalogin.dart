@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'exibicao_dados_listview.dart'; // Import da home
+import 'exibicao_dados_listview.dart';
+import 'tela_cadastro.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -11,23 +13,22 @@ class TelaLogin extends StatefulWidget {
 class _TelaLoginState extends State<TelaLogin> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
-  final String _emailCorreto = "luis@gmail.com";
-  final String _senhaCorreta = "1234";
 
-  void _fazerLogin() {
-    String email = _emailController.text.trim();
-    String senha = _senhaController.text.trim();
+  void _fazerLogin() async {
+    final email = _emailController.text.trim();
+    final senha = _senhaController.text.trim();
 
-    if (email == _emailCorreto && senha == _senhaCorreta) {
-      // Navega para a home ao fazer login
+    final response = await Supabase.instance.client.auth.signInWithPassword(
+      email: email,
+      password: senha,
+    );
+
+    if (response.session != null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const EntradaDadosListView(),
-        ),
+        MaterialPageRoute(builder: (context) => const EntradaDadosListView()),
       );
     } else {
-      // Exibe mensagem de erro
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("E-mail ou senha incorretos!"),
@@ -46,15 +47,12 @@ class _TelaLoginState extends State<TelaLogin> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Ícone principal com a imagem
               const CircleAvatar(
                 radius: 50,
-                backgroundImage:
-                    AssetImage('assets/todolist.png'), // Caminho da imagem
+                backgroundImage: AssetImage('assets/todolist.png'),
               ),
               const SizedBox(height: 40),
 
-              // Campo de e-mail
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -67,7 +65,6 @@ class _TelaLoginState extends State<TelaLogin> {
               ),
               const SizedBox(height: 20),
 
-              // Campo de senha
               TextField(
                 controller: _senhaController,
                 obscureText: true,
@@ -81,7 +78,7 @@ class _TelaLoginState extends State<TelaLogin> {
               ),
               const SizedBox(height: 20),
 
-              // Botão de Login
+              //login
               ElevatedButton(
                 onPressed: _fazerLogin,
                 style: ElevatedButton.styleFrom(
@@ -91,6 +88,20 @@ class _TelaLoginState extends State<TelaLogin> {
                   ),
                 ),
                 child: const Text('Entrar'),
+              ),
+
+              const SizedBox(height: 10),
+
+              //ir para o cadadstro
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const TelaCadastro()),
+                  );
+                },
+                child: const Text('Não tem uma conta? Cadastre-se'),
               ),
             ],
           ),
